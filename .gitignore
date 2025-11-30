@@ -1,0 +1,269 @@
+# SRT-MGATE-1210 User Guide - Git Ignore File
+
+# ============================================
+# Generated Documentation Output
+# ============================================
+output/*.docx
+output/*.pdf
+output/*.html
+output/*.epub
+
+# Keep output directory structure
+!output/.gitkeep
+
+# ============================================
+# Temporary Files
+# ============================================
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ============================================
+# Python
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ============================================
+# LaTeX / Pandoc Intermediates
+# ============================================
+*.aux
+*.log
+*.out
+*.toc
+*.lot
+*.lof
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.bcf
+*.run.xml
+
+# ============================================
+# Microsoft Word / Office
+# ============================================
+~$*.doc*
+~$*.xls*
+~$*.ppt*
+*.tmp
+
+# Word temporary
+~WRL*.tmp
+
+# Excel temporary
+~$*.xls*
+
+# Excel Backup File
+*.xlk
+
+# PowerPoint temporary
+~$*.ppt*
+
+# ============================================
+# IDEs and Editors
+# ============================================
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# JetBrains (PyCharm, IntelliJ, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ============================================
+# Operating Systems
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# Assets - Temporary and Cache
+# ============================================
+assets/ui/temp/
+assets/ui/.cache/
+assets/ui/*.tmp
+assets/ui/backup/
+
+# Keep directory structure
+!assets/ui/mobile-app/.gitkeep
+!assets/ui/gateway-hardware/.gitkeep
+!assets/ui/diagrams/.gitkeep
+!assets/templates/.gitkeep
+
+# ============================================
+# Scripts - Generated and Cache
+# ============================================
+scripts/__pycache__/
+scripts/*.pyc
+scripts/.pytest_cache/
+
+# ============================================
+# Documentation Drafts
+# ============================================
+drafts/
+archive/
+old/
+*.draft.md
+*.wip.md
+
+# ============================================
+# Large Files (use Git LFS if needed)
+# ============================================
+# Uncomment if using Git LFS
+# *.pdf filter=lfs diff=lfs merge=lfs -text
+# *.docx filter=lfs diff=lfs merge=lfs -text
+# *.png filter=lfs diff=lfs merge=lfs -text
+# *.jpg filter=lfs diff=lfs merge=lfs -text
+
+# ============================================
+# Environment Variables
+# ============================================
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# ============================================
+# Logs
+# ============================================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================================
+# Package Managers
+# ============================================
+node_modules/
+package-lock.json
+yarn.lock
+Pipfile.lock
+
+# ============================================
+# Test Coverage
+# ============================================
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# ============================================
+# Database
+# ============================================
+*.sqlite
+*.db
+
+# ============================================
+# Security / Sensitive Data
+# ============================================
+secrets/
+credentials/
+*.key
+*.pem
+*.crt
+*.p12
+
+# ============================================
+# Custom Excludes
+# ============================================
+
+# Large reference PDFs (commit separately or use LFS)
+# Uncomment to ignore specific large files
+# references/*.pdf
+
+# Backup of old Word documents
+backup/*.docx
+old-versions/
+
+# ============================================
+# Keep These Files
+# ============================================
+
+# README files in subdirectories
+!**/README.md
+!**/.gitkeep
+
+# Template files
+!assets/templates/*.docx
+
+# Example files
+!examples/*
