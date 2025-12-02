@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__firecrawl__firecrawl_search",
+      "mcp__firecrawl__firecrawl_scrape",
+      "Bash(claude mcp add:*)",
+      "Bash(uvx:*)",
+      "Bash(cmd /c where uvx)",
+      "Bash(cmd /c uv --version)",
+      "Bash(pip show:*)",
+      "Bash(findstr:*)",
+      "mcp__github__get_file_contents",
+      "mcp__filesystem__list_directory",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
