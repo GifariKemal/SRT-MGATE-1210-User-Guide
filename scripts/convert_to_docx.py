@@ -24,7 +24,7 @@ OUTPUT_DIR = PROJECT_DIR / "output"
 OUTPUT_FILE = OUTPUT_DIR / "Panduan_Pengguna_Gateway_Config_App.docx"
 
 # Document settings
-IMAGE_WIDTH = Inches(4.5)  # Moderate size, not full page
+IMAGE_WIDTH = Inches(2.5)  # Smaller size, ~6.5cm for mobile screenshots
 PAGE_WIDTH = Inches(8.5)
 PAGE_HEIGHT = Inches(11)
 MARGIN = Inches(1)
