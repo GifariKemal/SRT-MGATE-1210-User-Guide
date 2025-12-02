@@ -40,6 +40,199 @@ figure_counter = {}  # Track figure numbers per section
 table_counter = {}   # Track table numbers per section
 current_section = [0]  # Current section number (using list for mutability)
 
+# Color definitions for callout boxes (using hex strings directly)
+COLORS = {
+    'tip': {'bg': 'E8F5E9', 'border': '4CAF50', 'icon': '💡', 'title_color': RGBColor(76, 175, 80)},      # Green
+    'warning': {'bg': 'FFF3E0', 'border': 'FF9800', 'icon': '⚠️', 'title_color': RGBColor(255, 152, 0)},  # Orange
+    'note': {'bg': 'E3F2FD', 'border': '2196F3', 'icon': 'ℹ️', 'title_color': RGBColor(33, 150, 243)},    # Blue
+    'danger': {'bg': 'FFEBEE', 'border': 'F44336', 'icon': '❌', 'title_color': RGBColor(244, 67, 54)},   # Red
+}
+
+def add_callout_box(doc, box_type, title, content):
+    """
+    Add a styled callout/info box.
+    box_type: 'tip', 'warning', 'note', 'danger'
+    """
+    colors = COLORS.get(box_type, COLORS['note'])
+
+    # Create a table with 1 row and 1 cell for the box
+    table = doc.add_table(rows=1, cols=1)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    # Set table width to 90% of page
+    table.autofit = False
+    for cell in table.rows[0].cells:
+        cell.width = Inches(6)
+
+    cell = table.rows[0].cells[0]
+
+    # Set cell shading (background color)
+    shading = OxmlElement('w:shd')
+    shading.set(qn('w:fill'), colors['bg'])
+    cell._tc.get_or_add_tcPr().append(shading)
+
+    # Set cell border
+    tcPr = cell._tc.get_or_add_tcPr()
+    tcBorders = OxmlElement('w:tcBorders')
+
+    for border_name in ['top', 'left', 'bottom', 'right']:
+        border = OxmlElement(f'w:{border_name}')
+        border.set(qn('w:val'), 'single')
+        border.set(qn('w:sz'), '12')  # Border width
+        border.set(qn('w:color'), colors['border'])
+        tcBorders.append(border)
+
+    tcPr.append(tcBorders)
+
+    # Add title with icon
+    p = cell.paragraphs[0]
+    run = p.add_run(f"{colors['icon']} {title}")
+    run.font.bold = True
+    run.font.size = Pt(11)
+    run.font.name = 'Calibri'
+    run.font.color.rgb = colors['title_color']
+
+    # Add content
+    p2 = cell.add_paragraph()
+    run2 = p2.add_run(content)
+    run2.font.size = Pt(10)
+    run2.font.name = 'Calibri'
+
+    # Add spacing after
+    doc.add_paragraph()
+
+def add_watermark(doc, text="SURIOTA"):
+    """Add a diagonal watermark to the document header."""
+    section = doc.sections[0]
+    header = section.header
+
+    # Create watermark using a shape in header
+    p = header.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # Note: python-docx doesn't directly support watermarks
+    # We'll add it as semi-transparent text in header instead
+    run = p.add_run(text)
+    run.font.size = Pt(8)
+    run.font.color.rgb = RGBColor(220, 220, 220)  # Very light gray
+    run.font.name = 'Calibri'
+
+def add_version_history(doc):
+    """Add version history table after cover page."""
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run("RIWAYAT REVISI DOKUMEN")
+    run.font.size = Pt(14)
+    run.font.bold = True
+    run.font.name = "Calibri"
+    run.font.color.rgb = RGBColor(0, 102, 153)
+
+    doc.add_paragraph()
+
+    # Create version history table
+    table = doc.add_table(rows=4, cols=4)
+    table.style = 'Table Grid'
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    # Header row
+    headers = ['Versi', 'Tanggal', 'Penulis', 'Deskripsi Perubahan']
+    for i, header_text in enumerate(headers):
+        cell = table.rows[0].cells[i]
+        p = cell.paragraphs[0]
+        run = p.add_run(header_text)
+        run.font.bold = True
+        run.font.size = Pt(10)
+        run.font.name = 'Calibri'
+        # Set header background
+        shading = OxmlElement('w:shd')
+        shading.set(qn('w:fill'), '006699')
+        cell._tc.get_or_add_tcPr().append(shading)
+        run.font.color.rgb = RGBColor(255, 255, 255)
+
+    # Version entries
+    versions = [
+        ('1.0.0', 'Desember 2025', 'Tim SURIOTA', 'Rilis awal dokumen'),
+        ('', '', '', ''),
+        ('', '', '', ''),
+    ]
+
+    for row_idx, version_data in enumerate(versions, start=1):
+        for col_idx, text in enumerate(version_data):
+            cell = table.rows[row_idx].cells[col_idx]
+            p = cell.paragraphs[0]
+            run = p.add_run(text)
+            run.font.size = Pt(10)
+            run.font.name = 'Calibri'
+
+    doc.add_paragraph()
+    doc.add_page_break()
+
+def add_glossary(doc):
+    """Add glossary/terminology section at the end."""
+    doc.add_page_break()
+
+    # Title
+    doc.add_heading("Glosarium / Daftar Istilah", level=1)
+
+    doc.add_paragraph()
+
+    # Glossary table
+    terms = [
+        ('API', 'Application Programming Interface - antarmuka untuk komunikasi antar aplikasi'),
+        ('BLE', 'Bluetooth Low Energy - protokol Bluetooth hemat energi'),
+        ('Gateway', 'Perangkat penghubung antara sensor dan server/cloud'),
+        ('HTTP', 'Hypertext Transfer Protocol - protokol komunikasi web'),
+        ('IIoT', 'Industrial Internet of Things - IoT untuk industri'),
+        ('JSON', 'JavaScript Object Notation - format pertukaran data'),
+        ('Modbus RTU', 'Protokol komunikasi serial untuk perangkat industri'),
+        ('Modbus TCP', 'Protokol Modbus melalui jaringan TCP/IP'),
+        ('MQTT', 'Message Queuing Telemetry Transport - protokol messaging IoT'),
+        ('Register', 'Alamat memori pada perangkat Modbus untuk menyimpan data'),
+        ('RTU', 'Remote Terminal Unit - unit terminal jarak jauh'),
+        ('Slave ID', 'Alamat unik perangkat Modbus dalam jaringan'),
+        ('TCP/IP', 'Transmission Control Protocol/Internet Protocol'),
+        ('TLS/SSL', 'Transport Layer Security - enkripsi komunikasi'),
+    ]
+
+    table = doc.add_table(rows=len(terms) + 1, cols=2)
+    table.style = 'Table Grid'
+
+    # Header
+    header_cells = table.rows[0].cells
+    for i, text in enumerate(['Istilah', 'Definisi']):
+        p = header_cells[i].paragraphs[0]
+        run = p.add_run(text)
+        run.font.bold = True
+        run.font.size = Pt(11)
+        run.font.name = 'Calibri'
+        shading = OxmlElement('w:shd')
+        shading.set(qn('w:fill'), '006699')
+        header_cells[i]._tc.get_or_add_tcPr().append(shading)
+        run.font.color.rgb = RGBColor(255, 255, 255)
+
+    # Set column widths
+    header_cells[0].width = Inches(1.5)
+    header_cells[1].width = Inches(5)
+
+    # Terms
+    for row_idx, (term, definition) in enumerate(terms, start=1):
+        cells = table.rows[row_idx].cells
+        cells[0].width = Inches(1.5)
+        cells[1].width = Inches(5)
+
+        p1 = cells[0].paragraphs[0]
+        run1 = p1.add_run(term)
+        run1.font.bold = True
+        run1.font.size = Pt(10)
+        run1.font.name = 'Calibri'
+
+        p2 = cells[1].paragraphs[0]
+        run2 = p2.add_run(definition)
+        run2.font.size = Pt(10)
+        run2.font.name = 'Calibri'
+
+    doc.add_paragraph()
+
 def add_page_number(run):
     """Add page number field to a run."""
     fldChar1 = create_element('w:fldChar')
@@ -917,15 +1110,37 @@ def process_markdown(doc, md_content):
                 p = doc.add_paragraph(style='List Number')
                 add_formatted_text(p, num_text)
             elif text.startswith('> '):
-                # Quote/Note
-                p = doc.add_paragraph()
-                # Remove > and process formatting
-                quote_text = text[2:]
-                add_formatted_text(p, quote_text)
-                # Make the whole quote italic and gray
-                for run in p.runs:
-                    run.font.italic = True
-                    run.font.color.rgb = RGBColor(100, 100, 100)
+                # Quote/Note - check for callout box indicators
+                quote_text = text[2:].strip()
+
+                # Check for callout indicators
+                if quote_text.startswith('💡') or quote_text.lower().startswith('tip:') or quote_text.lower().startswith('[tip]'):
+                    # Tip callout
+                    content = re.sub(r'^(💡|tip:|Tip:|\[tip\]|\[TIP\])\s*', '', quote_text, flags=re.IGNORECASE)
+                    add_callout_box(doc, 'tip', 'Tips', content)
+                elif quote_text.startswith('⚠️') or quote_text.lower().startswith('warning:') or quote_text.lower().startswith('[warning]'):
+                    # Warning callout
+                    content = re.sub(r'^(⚠️|warning:|Warning:|\[warning\]|\[WARNING\])\s*', '', quote_text, flags=re.IGNORECASE)
+                    add_callout_box(doc, 'warning', 'Peringatan', content)
+                elif quote_text.startswith('ℹ️') or quote_text.lower().startswith('note:') or quote_text.lower().startswith('[note]'):
+                    # Note callout
+                    content = re.sub(r'^(ℹ️|note:|Note:|\[note\]|\[NOTE\])\s*', '', quote_text, flags=re.IGNORECASE)
+                    add_callout_box(doc, 'note', 'Catatan', content)
+                elif quote_text.startswith('❌') or quote_text.lower().startswith('danger:') or quote_text.lower().startswith('[danger]'):
+                    # Danger callout
+                    content = re.sub(r'^(❌|danger:|Danger:|\[danger\]|\[DANGER\])\s*', '', quote_text, flags=re.IGNORECASE)
+                    add_callout_box(doc, 'danger', 'Penting', content)
+                elif quote_text.startswith('✅'):
+                    # Success/tip callout
+                    content = quote_text.replace('✅', '').strip()
+                    add_callout_box(doc, 'tip', 'Berhasil', content)
+                else:
+                    # Regular quote
+                    p = doc.add_paragraph()
+                    add_formatted_text(p, quote_text)
+                    for run in p.runs:
+                        run.font.italic = True
+                        run.font.color.rgb = RGBColor(100, 100, 100)
             else:
                 # Regular paragraph with formatting
                 p = doc.add_paragraph()
@@ -976,6 +1191,11 @@ def add_footer_info(doc):
     run = p.add_run("www.suriota.com | support@suriota.com")
     run.font.size = Pt(10)
 
+def add_sample_callouts(doc):
+    """Add sample callout boxes to demonstrate the feature."""
+    # This function adds callouts at strategic points in the document
+    # Callouts will be added in process_markdown based on content
+
 def main():
     """Main conversion function."""
     print("=" * 60)
@@ -1013,6 +1233,10 @@ def main():
     print("Adding cover page...")
     add_cover_page(doc)
 
+    # Add version history
+    print("Adding version history...")
+    add_version_history(doc)
+
     # Add table of contents
     print("Adding table of contents...")
     add_table_of_contents(doc)
@@ -1020,6 +1244,10 @@ def main():
     # Process markdown content
     print("Processing content...")
     process_markdown(doc, md_content)
+
+    # Add glossary
+    print("Adding glossary...")
+    add_glossary(doc)
 
     # Add footer info
     print("Adding document info...")

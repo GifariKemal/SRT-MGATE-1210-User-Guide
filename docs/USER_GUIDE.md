@@ -765,7 +765,11 @@ Tekan tab **Settings** di bagian bawah layar untuk mengakses pengaturan.
 
 ## 11. Troubleshooting
 
+> ℹ️ **Note:** Bagian ini berisi panduan untuk mengatasi masalah umum yang mungkin Anda temui saat menggunakan Gateway Config App.
+
 ### ❓ Masalah Umum dan Solusinya
+
+> ⚠️ **Warning:** Sebelum melakukan troubleshooting, pastikan gateway dalam keadaan menyala dan Bluetooth smartphone Anda aktif.
 
 #### 🔴 Gateway tidak ditemukan saat scan
 
@@ -809,6 +813,8 @@ Tekan tab **Settings** di bagian bawah layar untuk mengakses pengaturan.
 | Port salah | Gunakan 1883 (non-TLS) atau 8883 (TLS) |
 | Username/Password salah | Periksa kredensial MQTT |
 | Gateway tidak terkoneksi internet | Cek koneksi jaringan |
+
+> 💡 **Tip:** Jika masalah masih berlanjut setelah mencoba solusi di atas, coba restart gateway dengan mematikan dan menyalakan kembali sumber daya.
 
 ---
 
