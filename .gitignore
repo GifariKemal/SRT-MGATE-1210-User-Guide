@@ -3,13 +3,14 @@
 # ============================================
 # Generated Documentation Output
 # ============================================
-output/*.docx
+# output/*.docx  # Allow final docx to be tracked
 output/*.pdf
 output/*.html
 output/*.epub
 
 # Keep output directory structure
 !output/.gitkeep
+!output/Panduan_Pengguna_Gateway_Config_App.docx
 
 # ============================================
 # Temporary Files
