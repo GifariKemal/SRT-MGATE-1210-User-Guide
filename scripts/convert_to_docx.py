@@ -24,7 +24,7 @@ OUTPUT_DIR = PROJECT_DIR / "output"
 OUTPUT_FILE = OUTPUT_DIR / "Panduan_Pengguna_Gateway_Config_App.docx"
 
 # Document settings
-IMAGE_WIDTH = Inches(2.5)  # Smaller size, ~6.5cm for mobile screenshots
+IMAGE_WIDTH = Inches(1.8)  # Smaller size for side-by-side display
 PAGE_WIDTH = Inches(8.5)
 PAGE_HEIGHT = Inches(11)
 MARGIN = Inches(1)
@@ -349,7 +349,7 @@ def add_images_side_by_side(doc, images_data):
                     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                     run = p.add_run()
                     try:
-                        run.add_picture(str(image_path), width=Inches(2.3))
+                        run.add_picture(str(image_path), width=Inches(1.8))
                     except Exception as e:
                         print(f"Error adding image {image_path}: {e}")
 

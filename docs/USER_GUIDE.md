@@ -287,8 +287,9 @@ Jika belum ada device yang didaftarkan, halaman akan menampilkan pesan "No devic
 Tekan tombol **(+)** di pojok kanan atas untuk menambah device baru.
 
 ![Form Setup Device - RTU](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.21.jpeg)
+![Form Setup Device - Advanced](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.19.jpeg)
 
-*Gambar 5.2: Form untuk menambah device baru - Mode Modbus RTU*
+*Gambar 5.2-5.3: Form device Modbus RTU dan pengaturan lanjutan*
 
 ### 📝 Penjelasan Form Device (Modbus RTU)
 
@@ -303,15 +304,7 @@ Tekan tombol **(+)** di pojok kanan atas untuk menambah device baru.
 | **Parity** | Pengaturan parity | `None` |
 | **Stop Bit** | Jumlah stop bit | `1` |
 
----
-
 ### ⚙️ Pengaturan Lanjutan (Advanced Settings)
-
-Scroll ke bawah untuk melihat pengaturan lanjutan.
-
-![Form Setup Device - Advanced](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.19.jpeg)
-
-*Gambar 5.3: Pengaturan lanjutan device*
 
 | Field | Keterangan | Nilai Default |
 |-------|------------|---------------|
@@ -326,17 +319,14 @@ Scroll ke bawah untuk melihat pengaturan lanjutan.
 Jika device Anda menggunakan **Modbus TCP** (via Ethernet), pilih opsi tersebut.
 
 ![Form Setup Device - TCP](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.20%20(2).jpeg)
+![Form Setup Device - TCP Advanced](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.20%20(1).jpeg)
 
-*Gambar 5.4: Form device untuk Modbus TCP*
+*Gambar 5.4-5.5: Form device Modbus TCP dan pengaturan lanjutan*
 
 | Field | Keterangan | Contoh |
 |-------|------------|--------|
 | **IP Address** | Alamat IP device Modbus TCP | `192.168.1.100` |
 | **Server Port** | Port Modbus (default 502) | `502` |
-
-![Form Setup Device - TCP Advanced](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.20%20(1).jpeg)
-
-*Gambar 5.5: Pengaturan lanjutan Modbus TCP*
 
 ---
 
@@ -479,12 +469,9 @@ Tekan **Save Register Configuration** untuk menyimpan.
 Register yang sudah ditambahkan akan muncul di daftar.
 
 ![Register List](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.23%20(1).jpeg)
-
-*Gambar 6.5: Daftar register yang sudah dikonfigurasi*
-
 ![Register List Expanded](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.23%20(2).jpeg)
 
-*Gambar 6.6: Tampilan daftar register dengan detail*
+*Gambar 6.5-6.6: Daftar register dan tampilan detail*
 
 ---
 
@@ -512,24 +499,21 @@ Dari dashboard, tekan menu **Server Configurations**.
 
 ---
 
-### 📶 Tab Network - Pengaturan WiFi
+### 📶 Tab Network - Pengaturan WiFi & Ethernet
 
 ![Network Settings](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.24%20(1).jpeg)
+![Ethernet Settings](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.24%20(2).jpeg)
 
-*Gambar 7.2: Pengaturan jaringan WiFi*
+*Gambar 7.2-7.3: Pengaturan WiFi dan Ethernet*
+
+**Pengaturan WiFi:**
 
 | Field | Keterangan | Contoh |
 |-------|------------|--------|
 | **WiFi SSID** | Nama jaringan WiFi | `MyWiFi_Network` |
 | **WiFi Password** | Password WiFi | `********` |
 
----
-
-### 🔌 Tab Network - Pengaturan Ethernet
-
-![Ethernet Settings](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.24%20(2).jpeg)
-
-*Gambar 7.3: Pengaturan Ethernet*
+**Pengaturan Ethernet:**
 
 **Mode DHCP (Otomatis):**
 - Gateway akan mendapatkan IP secara otomatis dari router
@@ -548,52 +532,33 @@ Dari dashboard, tekan menu **Server Configurations**.
 ### ☁️ Tab MQTT - Pengaturan Cloud
 
 ![MQTT Settings](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.25.jpeg)
+![MQTT Publish Settings](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.25%20(1).jpeg)
 
-*Gambar 7.4: Pengaturan MQTT broker*
+*Gambar 7.4-7.5: Pengaturan MQTT broker dan publish*
 
 | Field | Keterangan | Contoh |
 |-------|------------|--------|
 | **Broker Address** | URL/IP server MQTT | `mqtt.example.com` |
 | **Port** | Port MQTT (1883 atau 8883) | `1883` |
 | **Client ID** | Identifier unik gateway | `gateway_001` |
-| **Username** | Username MQTT (opsional) | `user123` |
-| **Password** | Password MQTT (opsional) | `********` |
-
----
-
-### 📤 Tab MQTT - Pengaturan Publish
-
-![MQTT Publish Settings](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.25%20(1).jpeg)
-
-*Gambar 7.5: Pengaturan publish MQTT*
-
-| Field | Keterangan | Contoh |
-|-------|------------|--------|
 | **Topic** | Alamat topic publish | `suriota/data` |
 | **QoS** | Quality of Service (0/1/2) | `1` |
 | **Publish Interval** | Interval pengiriman (ms) | `5000` |
 
 ---
 
-### 🔒 Tab MQTT - Pengaturan TLS/SSL
+### 🔒 Tab MQTT - Pengaturan TLS/SSL & Simpan
 
 ![MQTT TLS Settings](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.25%20(2).jpeg)
+![Save Server Config](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.25%20(3).jpeg)
 
-*Gambar 7.6: Pengaturan keamanan TLS*
+*Gambar 7.6-7.7: Pengaturan TLS dan tombol simpan*
 
 Aktifkan **TLS/SSL** untuk koneksi yang aman:
 - Port default untuk TLS: `8883`
 - Mendukung certificate upload
 
----
-
-### 💾 Simpan Konfigurasi Server
-
 Tekan tombol **Save** di setiap tab setelah melakukan perubahan.
-
-![Save Server Config](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.25%20(3).jpeg)
-
-*Gambar 7.7: Tombol simpan konfigurasi*
 
 ---
 
@@ -664,29 +629,18 @@ Menu **Status** menampilkan informasi real-time tentang kondisi gateway.
 
 ---
 
-### 🔄 Firmware Update
-
-Menu **Firmware Update** untuk memperbarui firmware gateway.
+### 🔄 Firmware Update, Backup & Restore
 
 ![Firmware Update](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.26%20(1).jpeg)
+![Backup Page](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.26%20(2).jpeg)
 
-*Gambar 8.2: Halaman firmware update*
+*Gambar 8.2-8.3: Halaman Firmware Update dan Backup*
 
 **Langkah Update Firmware:**
 1. Pastikan gateway terhubung ke internet
 2. Tekan **Check for Updates**
 3. Jika ada update, tekan **Download & Install**
 4. Tunggu proses selesai (jangan matikan gateway!)
-
----
-
-### 💾 Backup Konfigurasi
-
-Menu **Backup** untuk menyimpan semua konfigurasi ke smartphone.
-
-![Backup Page](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.26%20(2).jpeg)
-
-*Gambar 8.3: Halaman backup konfigurasi*
 
 **Langkah Backup:**
 1. Tekan tombol **Backup Now**
@@ -696,8 +650,6 @@ Menu **Backup** untuk menyimpan semua konfigurasi ke smartphone.
 ---
 
 ### 📥 Restore Konfigurasi
-
-Menu **Restore** untuk mengembalikan konfigurasi dari backup.
 
 ![Restore Page](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.27.jpeg)
 
@@ -711,13 +663,14 @@ Menu **Restore** untuk mengembalikan konfigurasi dari backup.
 
 ---
 
-### 📱 Device Status
-
-Menu **Device Status** menampilkan informasi detail tentang gateway.
+### 📱 Device Status & Settings
 
 ![Device Status](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.28%20(1).jpeg)
+![Device Settings](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.28%20(2).jpeg)
 
-*Gambar 8.5: Halaman Device Status*
+*Gambar 8.5-8.6: Halaman Device Status dan Device Settings*
+
+**Device Status:**
 
 | Menu | Fungsi |
 |------|--------|
@@ -725,15 +678,7 @@ Menu **Device Status** menampilkan informasi detail tentang gateway.
 | **SD Card Info** | Informasi kapasitas SD Card |
 | **Update Firmware** | Menu update firmware OTA |
 
----
-
-### ⚙️ Device Settings
-
-Menu **Device Settings** untuk mengatur konfigurasi gateway.
-
-![Device Settings](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.28%20(2).jpeg)
-
-*Gambar 8.6: Halaman Device Settings*
+**Device Settings:**
 
 | Menu | Fungsi |
 |------|--------|
@@ -751,29 +696,20 @@ Menu **Device Settings** untuk mengatur konfigurasi gateway.
 
 Fitur **Streaming** memungkinkan Anda melihat data sensor secara langsung.
 
-### Langkah 1: Buka Streaming Device
+### Langkah-langkah Streaming Data
 
 Dari halaman **Device Communications**, tekan tombol **View** pada device yang ingin dilihat datanya.
 
 ![Streaming Device](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.14.jpeg)
-
-*Gambar 9.1: Halaman streaming device*
-
-### Langkah 2: Mulai Streaming
-
-Tekan tombol **Stream Data** untuk memulai pembacaan data.
-
 ![Streaming Active](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.17.jpeg)
-
-*Gambar 9.2: Proses streaming data*
-
-### Langkah 3: Lihat Data
-
-Data dari register yang dikonfigurasi akan ditampilkan secara real-time.
-
 ![Streaming Data View](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.27%20(1).jpeg)
 
-*Gambar 9.3: Tampilan data streaming*
+*Gambar 9.1-9.3: Langkah streaming dari device hingga tampilan data*
+
+**Langkah-langkah:**
+1. Buka halaman streaming device
+2. Tekan tombol **Stream Data** untuk memulai pembacaan
+3. Data dari register akan ditampilkan secara real-time
 
 **Kontrol Streaming:**
 - **Stream Data** - Mulai/lanjutkan streaming
@@ -803,32 +739,20 @@ Tekan tab **Settings** di bagian bawah layar untuk mengakses pengaturan.
 
 ---
 
-### 👤 My Profile
+### 👤 My Profile, About Product & About App
 
 ![My Profile](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.31.jpeg)
-
-*Gambar 10.2: Halaman profil pengguna*
-
----
-
-### ℹ️ About Product
-
 ![About Product](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.30%20(2).jpeg)
+![About App](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.30%20(1).jpeg)
 
-*Gambar 10.3: Informasi produk gateway*
+*Gambar 10.2-10.4: Halaman Profile, About Product, dan About App*
 
-Halaman ini menampilkan:
+**About Product** menampilkan:
 - Diagram arsitektur sistem
 - Fitur-fitur gateway
 - Spesifikasi teknis
 
----
-
-### 📱 About App
-
-![About App](../assets/screenshots/WhatsApp%20Image%202025-11-30%20at%2015.08.30%20(1).jpeg)
-
-*Gambar 10.4: Informasi aplikasi*
+**About App:**
 
 | Informasi | Keterangan |
 |-----------|------------|
