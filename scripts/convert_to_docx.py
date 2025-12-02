@@ -35,6 +35,11 @@ def create_element(name):
 def create_attribute(element, name, value):
     element.set(qn(name), value)
 
+# Global counters for captions
+figure_counter = {}  # Track figure numbers per section
+table_counter = {}   # Track table numbers per section
+current_section = [0]  # Current section number (using list for mutability)
+
 def add_page_number(run):
     """Add page number field to a run."""
     fldChar1 = create_element('w:fldChar')
@@ -214,8 +219,9 @@ def add_cover_page(doc):
     doc.add_page_break()
 
 def add_table_of_contents(doc):
-    """Add table of contents page."""
-    p = doc.add_heading("Daftar Isi", level=1)
+    """Add table of contents page with proper formatting."""
+    # Main TOC heading
+    doc.add_heading("Daftar Isi", level=1)
 
     toc_items = [
         ("1.", "Tentang Aplikasi", "Pengenalan Gateway Config App"),
@@ -238,13 +244,14 @@ def add_table_of_contents(doc):
 
     # Header row
     header_cells = table.rows[0].cells
-    header_cells[0].text = "No"
-    header_cells[1].text = "Bagian"
-    header_cells[2].text = "Deskripsi"
+    header_cells[0].text = "Bab"
+    header_cells[1].text = "Judul"
+    header_cells[2].text = "Keterangan"
 
     for cell in header_cells:
         cell.paragraphs[0].runs[0].font.bold = True
         cell.paragraphs[0].runs[0].font.size = Pt(11)
+        cell.paragraphs[0].runs[0].font.name = "Calibri"
 
     # Content rows
     for num, title, desc in toc_items:
@@ -252,8 +259,34 @@ def add_table_of_contents(doc):
         row.cells[0].text = num
         row.cells[1].text = title
         row.cells[2].text = desc
+        for cell in row.cells:
+            for para in cell.paragraphs:
+                for run in para.runs:
+                    run.font.size = Pt(10)
+                    run.font.name = "Calibri"
 
     doc.add_paragraph()
+
+    # Add note about figure and table numbering
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    run = p.add_run("Catatan Penomoran:")
+    run.font.bold = True
+    run.font.size = Pt(10)
+    run.font.name = "Calibri"
+
+    p = doc.add_paragraph()
+    run = p.add_run("• Gambar dinomori dengan format: Gambar [Bab].[Urutan] (contoh: Gambar 3.1)")
+    run.font.size = Pt(10)
+    run.font.name = "Calibri"
+    run.font.italic = True
+
+    p = doc.add_paragraph()
+    run = p.add_run("• Tabel dinomori dengan format: Tabel [Bab].[Urutan] (contoh: Tabel 5.1)")
+    run.font.size = Pt(10)
+    run.font.name = "Calibri"
+    run.font.italic = True
+
     doc.add_page_break()
 
 def find_image(image_name):
@@ -284,8 +317,65 @@ def find_image(image_name):
 
     return None
 
+def get_figure_number():
+    """Get next figure number for current section."""
+    sec = current_section[0]
+    if sec not in figure_counter:
+        figure_counter[sec] = 0
+    figure_counter[sec] += 1
+    return f"{sec}.{figure_counter[sec]}"
+
+def get_table_number():
+    """Get next table number for current section."""
+    sec = current_section[0]
+    if sec not in table_counter:
+        table_counter[sec] = 0
+    table_counter[sec] += 1
+    return f"{sec}.{table_counter[sec]}"
+
+def add_figure_caption(doc, caption_text):
+    """Add proper figure caption with numbering."""
+    fig_num = get_figure_number()
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # "Gambar X.Y: " in bold
+    run1 = p.add_run(f"Gambar {fig_num}: ")
+    run1.font.size = Pt(10)
+    run1.font.bold = True
+    run1.font.name = "Calibri"
+
+    # Caption text in italic
+    run2 = p.add_run(caption_text)
+    run2.font.size = Pt(10)
+    run2.font.italic = True
+    run2.font.name = "Calibri"
+    run2.font.color.rgb = RGBColor(80, 80, 80)
+
+    return fig_num
+
+def add_table_caption(doc, caption_text):
+    """Add proper table caption with numbering."""
+    tbl_num = get_table_number()
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # "Tabel X.Y: " in bold
+    run1 = p.add_run(f"Tabel {tbl_num}: ")
+    run1.font.size = Pt(10)
+    run1.font.bold = True
+    run1.font.name = "Calibri"
+
+    # Caption text
+    run2 = p.add_run(caption_text)
+    run2.font.size = Pt(10)
+    run2.font.name = "Calibri"
+    run2.font.color.rgb = RGBColor(80, 80, 80)
+
+    return tbl_num
+
 def add_image(doc, image_path, caption=None):
-    """Add single image with caption."""
+    """Add single image with proper caption numbering."""
     if not image_path or not Path(image_path).exists():
         print(f"Warning: Image not found: {image_path}")
         return
@@ -301,20 +391,15 @@ def add_image(doc, image_path, caption=None):
         print(f"Error adding image {image_path}: {e}")
         return
 
-    # Add caption if provided
+    # Add caption with proper numbering
     if caption:
-        p = doc.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        run = p.add_run(caption)
-        run.font.size = Pt(10)
-        run.font.italic = True
-        run.font.color.rgb = RGBColor(100, 100, 100)
+        add_figure_caption(doc, caption)
 
     # Add small spacing after image
     doc.add_paragraph()
 
 def add_images_side_by_side(doc, images_data):
-    """Add multiple images side by side using a table (2 per row)."""
+    """Add multiple images side by side using a table (2 per row) with proper captions."""
     if not images_data:
         return
 
@@ -332,6 +417,10 @@ def add_images_side_by_side(doc, images_data):
             cell._element.get_or_add_tcPr().append(
                 OxmlElement('w:tcBorders')
             )
+
+    # Collect figure numbers for combined caption
+    fig_numbers = []
+    captions = []
 
     img_idx = 0
     for row_idx in range(num_rows):
@@ -353,17 +442,47 @@ def add_images_side_by_side(doc, images_data):
                     except Exception as e:
                         print(f"Error adding image {image_path}: {e}")
 
-                    # Add caption to cell below
+                    # Get figure number for this image
+                    fig_num = get_figure_number()
+                    fig_numbers.append(fig_num)
+                    if caption:
+                        captions.append(caption)
+
+                    # Add individual caption label to cell below
                     cap_cell = caption_row.cells[col_idx]
                     cap_p = cap_cell.paragraphs[0]
                     cap_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    if caption:
-                        cap_run = cap_p.add_run(caption)
-                        cap_run.font.size = Pt(9)
-                        cap_run.font.italic = True
-                        cap_run.font.color.rgb = RGBColor(100, 100, 100)
+
+                    cap_run = cap_p.add_run(f"Gambar {fig_num}")
+                    cap_run.font.size = Pt(9)
+                    cap_run.font.bold = True
+                    cap_run.font.name = "Calibri"
 
                 img_idx += 1
+
+    # Add combined caption below table
+    if captions:
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        # Create range like "Gambar 3.1-3.3:"
+        if len(fig_numbers) > 1:
+            caption_label = f"Gambar {fig_numbers[0]}-{fig_numbers[-1]}: "
+        else:
+            caption_label = f"Gambar {fig_numbers[0]}: "
+
+        run1 = p.add_run(caption_label)
+        run1.font.size = Pt(10)
+        run1.font.bold = True
+        run1.font.name = "Calibri"
+
+        # Combined caption text
+        combined_caption = captions[0] if len(captions) == 1 else " & ".join(captions[:2]) if len(captions) == 2 else captions[0]
+        run2 = p.add_run(combined_caption)
+        run2.font.size = Pt(10)
+        run2.font.italic = True
+        run2.font.name = "Calibri"
+        run2.font.color.rgb = RGBColor(80, 80, 80)
 
     doc.add_paragraph()
 
@@ -380,10 +499,19 @@ def parse_table(lines):
                 rows.append(cells)
     return rows
 
-def add_table(doc, rows):
-    """Add table to document."""
+def add_table(doc, rows, caption=None):
+    """Add table to document with proper caption numbering."""
     if not rows:
         return
+
+    # Add table caption BEFORE table (Word standard)
+    if caption:
+        add_table_caption(doc, caption)
+    else:
+        # Generate caption from first header cell
+        if rows and rows[0]:
+            header_text = rows[0][0] if rows[0][0] else "Data"
+            add_table_caption(doc, f"Tabel {header_text}")
 
     num_cols = len(rows[0])
     table = doc.add_table(rows=len(rows), cols=num_cols)
@@ -414,9 +542,9 @@ def add_table(doc, rows):
 
 def process_markdown(doc, md_content):
     """Process markdown content and add to document."""
+    global current_section  # Use global counter
     lines = md_content.split('\n')
     i = 0
-    current_section = ""
     in_code_block = False
     code_content = []
     table_lines = []
@@ -480,8 +608,16 @@ def process_markdown(doc, md_content):
             title = line[3:].strip()
             # Remove emojis and clean
             title = re.sub(r'[^\w\s\.\-\(\)&]', '', title).strip()
+
+            # Extract section number from title (e.g., "1. Tentang" -> section 1)
+            sec_match = re.match(r'^(\d+)\.?\s*', title)
+            if sec_match:
+                current_section[0] = int(sec_match.group(1))
+                # Reset counters for new section
+                figure_counter[current_section[0]] = 0
+                table_counter[current_section[0]] = 0
+
             doc.add_heading(title, level=1)
-            current_section = title
             i += 1
             continue
 
