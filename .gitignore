@@ -177,7 +177,7 @@ scripts/.pytest_cache/
 # Documentation Drafts
 # ============================================
 drafts/
-archive/
+# archive/ - Keep this folder tracked
 old/
 *.draft.md
 *.wip.md
