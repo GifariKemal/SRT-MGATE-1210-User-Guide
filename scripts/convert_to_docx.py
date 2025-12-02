@@ -656,8 +656,9 @@ def add_figure_caption(doc, caption_text):
     run1.font.bold = True
     run1.font.name = "Calibri"
 
-    # Caption text in italic
-    run2 = p.add_run(caption_text)
+    # Caption text in italic - clean markdown first
+    clean_caption = clean_markdown_text(caption_text)
+    run2 = p.add_run(clean_caption)
     run2.font.size = Pt(10)
     run2.font.italic = True
     run2.font.name = "Calibri"
@@ -677,8 +678,9 @@ def add_table_caption(doc, caption_text):
     run1.font.bold = True
     run1.font.name = "Calibri"
 
-    # Caption text
-    run2 = p.add_run(caption_text)
+    # Caption text - clean markdown first
+    clean_caption = clean_markdown_text(caption_text)
+    run2 = p.add_run(clean_caption)
     run2.font.size = Pt(10)
     run2.font.name = "Calibri"
     run2.font.color.rgb = RGBColor(80, 80, 80)
@@ -797,77 +799,71 @@ def add_images_side_by_side(doc, images_data):
 
     doc.add_paragraph()
 
+def clean_markdown_text(text):
+    """Remove all markdown formatting symbols and return clean text."""
+    # Remove bold italic first (***text***)
+    text = re.sub(r'\*\*\*([^*]+)\*\*\*', r'\1', text)
+    # Remove bold (**text**)
+    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)
+    # Remove italic (*text*)
+    text = re.sub(r'\*([^*]+)\*', r'\1', text)
+    # Remove underline (__text__)
+    text = re.sub(r'__([^_]+)__', r'\1', text)
+    # Remove italic (_text_)
+    text = re.sub(r'_([^_]+)_', r'\1', text)
+    # Remove code (`text`)
+    text = re.sub(r'`([^`]+)`', r'\1', text)
+    # Remove any remaining single asterisks or underscores at word boundaries
+    text = re.sub(r'(?<!\w)\*(?!\*)', '', text)
+    text = re.sub(r'(?<!\*)\*(?!\w)', '', text)
+    return text
+
 def add_formatted_text(paragraph, text):
     """
     Add text to paragraph with proper markdown to Word formatting conversion.
     Handles: **bold**, *italic*, ***bold italic***, __underline__, `code`
     """
-    # Pattern to match markdown formatting
+    # Pattern to match all markdown formatting
     # Order matters: bold italic first, then bold, then italic, then underline, then code
-    patterns = [
-        (r'\*\*\*([^*]+)\*\*\*', 'bold_italic'),  # ***bold italic***
-        (r'\*\*([^*]+)\*\*', 'bold'),              # **bold**
-        (r'\*([^*]+)\*', 'italic'),                # *italic*
-        (r'__([^_]+)__', 'underline'),             # __underline__
-        (r'_([^_]+)_', 'italic'),                  # _italic_
-        (r'`([^`]+)`', 'code'),                    # `code`
-    ]
+    pattern = r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|(?<!\*)\*[^*]+\*(?!\*)|__[^_]+__|(?<!_)_[^_]+_(?!_)|`[^`]+`)'
 
-    # Combined pattern to find all formatted segments
-    combined_pattern = r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|\*[^*]+\*|__[^_]+__|_[^_]+_|`[^`]+`)'
+    # Find all matches with their positions
+    last_end = 0
+    for match in re.finditer(pattern, text):
+        # Add text before this match (plain text)
+        if match.start() > last_end:
+            plain_text = text[last_end:match.start()]
+            if plain_text:
+                run = paragraph.add_run(plain_text)
+                run.font.name = 'Calibri'
+                run.font.size = Pt(11)
 
-    # Split text by formatted segments
-    parts = re.split(combined_pattern, text)
-
-    for part in parts:
-        if not part:
-            continue
-
-        # Check which format this part matches
+        # Process the matched formatted text
+        matched_text = match.group(0)
         format_type = None
-        content = part
+        content = matched_text
 
-        # Check for bold italic (***text***)
-        match = re.match(r'\*\*\*([^*]+)\*\*\*', part)
-        if match:
+        # Determine format type and extract content
+        if matched_text.startswith('***') and matched_text.endswith('***'):
             format_type = 'bold_italic'
-            content = match.group(1)
+            content = matched_text[3:-3]
+        elif matched_text.startswith('**') and matched_text.endswith('**'):
+            format_type = 'bold'
+            content = matched_text[2:-2]
+        elif matched_text.startswith('*') and matched_text.endswith('*') and not matched_text.startswith('**'):
+            format_type = 'italic'
+            content = matched_text[1:-1]
+        elif matched_text.startswith('__') and matched_text.endswith('__'):
+            format_type = 'underline'
+            content = matched_text[2:-2]
+        elif matched_text.startswith('_') and matched_text.endswith('_') and not matched_text.startswith('__'):
+            format_type = 'italic'
+            content = matched_text[1:-1]
+        elif matched_text.startswith('`') and matched_text.endswith('`'):
+            format_type = 'code'
+            content = matched_text[1:-1]
 
-        # Check for bold (**text**)
-        if not format_type:
-            match = re.match(r'\*\*([^*]+)\*\*', part)
-            if match:
-                format_type = 'bold'
-                content = match.group(1)
-
-        # Check for italic (*text* or _text_)
-        if not format_type:
-            match = re.match(r'\*([^*]+)\*', part)
-            if match:
-                format_type = 'italic'
-                content = match.group(1)
-
-        if not format_type:
-            match = re.match(r'_([^_]+)_', part)
-            if match:
-                format_type = 'italic'
-                content = match.group(1)
-
-        # Check for underline (__text__)
-        if not format_type:
-            match = re.match(r'__([^_]+)__', part)
-            if match:
-                format_type = 'underline'
-                content = match.group(1)
-
-        # Check for code (`text`)
-        if not format_type:
-            match = re.match(r'`([^`]+)`', part)
-            if match:
-                format_type = 'code'
-                content = match.group(1)
-
-        # Add run with appropriate formatting
+        # Add formatted run
         run = paragraph.add_run(content)
         run.font.name = 'Calibri'
         run.font.size = Pt(11)
@@ -884,7 +880,17 @@ def add_formatted_text(paragraph, text):
         elif format_type == 'code':
             run.font.name = 'Consolas'
             run.font.size = Pt(10)
-            run.font.color.rgb = RGBColor(128, 0, 0)  # Dark red for code
+            run.font.color.rgb = RGBColor(128, 0, 0)
+
+        last_end = match.end()
+
+    # Add remaining text after last match
+    if last_end < len(text):
+        remaining = text[last_end:]
+        if remaining:
+            run = paragraph.add_run(remaining)
+            run.font.name = 'Calibri'
+            run.font.size = Pt(11)
 
 def add_formatted_text_to_cell(cell, text):
     """Add formatted text to a table cell."""
@@ -1096,6 +1102,17 @@ def process_markdown(doc, md_content):
         # Bold text and lists - with proper formatting conversion
         if line.strip():
             text = line.strip()
+
+            # Skip manual image captions (we generate them automatically)
+            # These are lines like: *Gambar 3.1: description*
+            if re.match(r'^\*Gambar \d+\.\d+:', text) or re.match(r'^\*Tabel \d+\.\d+:', text):
+                i += 1
+                continue
+
+            # Skip caption lines that start with asterisk and contain "Gambar" or image reference
+            if text.startswith('*') and text.endswith('*') and ('Gambar' in text or 'gambar' in text):
+                i += 1
+                continue
 
             # Convert markdown links first (keep link text)
             text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
