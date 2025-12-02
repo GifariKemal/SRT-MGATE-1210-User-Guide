@@ -573,6 +573,101 @@ def add_images_side_by_side(doc, images_data):
 
     doc.add_paragraph()
 
+def add_formatted_text(paragraph, text):
+    """
+    Add text to paragraph with proper markdown to Word formatting conversion.
+    Handles: **bold**, *italic*, ***bold italic***, __underline__, `code`
+    """
+    # Pattern to match markdown formatting
+    # Order matters: bold italic first, then bold, then italic, then underline, then code
+    patterns = [
+        (r'\*\*\*([^*]+)\*\*\*', 'bold_italic'),  # ***bold italic***
+        (r'\*\*([^*]+)\*\*', 'bold'),              # **bold**
+        (r'\*([^*]+)\*', 'italic'),                # *italic*
+        (r'__([^_]+)__', 'underline'),             # __underline__
+        (r'_([^_]+)_', 'italic'),                  # _italic_
+        (r'`([^`]+)`', 'code'),                    # `code`
+    ]
+
+    # Combined pattern to find all formatted segments
+    combined_pattern = r'(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|\*[^*]+\*|__[^_]+__|_[^_]+_|`[^`]+`)'
+
+    # Split text by formatted segments
+    parts = re.split(combined_pattern, text)
+
+    for part in parts:
+        if not part:
+            continue
+
+        # Check which format this part matches
+        format_type = None
+        content = part
+
+        # Check for bold italic (***text***)
+        match = re.match(r'\*\*\*([^*]+)\*\*\*', part)
+        if match:
+            format_type = 'bold_italic'
+            content = match.group(1)
+
+        # Check for bold (**text**)
+        if not format_type:
+            match = re.match(r'\*\*([^*]+)\*\*', part)
+            if match:
+                format_type = 'bold'
+                content = match.group(1)
+
+        # Check for italic (*text* or _text_)
+        if not format_type:
+            match = re.match(r'\*([^*]+)\*', part)
+            if match:
+                format_type = 'italic'
+                content = match.group(1)
+
+        if not format_type:
+            match = re.match(r'_([^_]+)_', part)
+            if match:
+                format_type = 'italic'
+                content = match.group(1)
+
+        # Check for underline (__text__)
+        if not format_type:
+            match = re.match(r'__([^_]+)__', part)
+            if match:
+                format_type = 'underline'
+                content = match.group(1)
+
+        # Check for code (`text`)
+        if not format_type:
+            match = re.match(r'`([^`]+)`', part)
+            if match:
+                format_type = 'code'
+                content = match.group(1)
+
+        # Add run with appropriate formatting
+        run = paragraph.add_run(content)
+        run.font.name = 'Calibri'
+        run.font.size = Pt(11)
+
+        if format_type == 'bold':
+            run.font.bold = True
+        elif format_type == 'italic':
+            run.font.italic = True
+        elif format_type == 'bold_italic':
+            run.font.bold = True
+            run.font.italic = True
+        elif format_type == 'underline':
+            run.font.underline = True
+        elif format_type == 'code':
+            run.font.name = 'Consolas'
+            run.font.size = Pt(10)
+            run.font.color.rgb = RGBColor(128, 0, 0)  # Dark red for code
+
+def add_formatted_text_to_cell(cell, text):
+    """Add formatted text to a table cell."""
+    p = cell.paragraphs[0]
+    p.clear()
+    add_formatted_text(p, text)
+
 def parse_table(lines):
     """Parse markdown table into rows."""
     rows = []
@@ -587,7 +682,7 @@ def parse_table(lines):
     return rows
 
 def add_table(doc, rows, caption=None):
-    """Add table to document with proper caption numbering."""
+    """Add table to document with proper caption numbering and formatting."""
     if not rows:
         return
 
@@ -608,22 +703,25 @@ def add_table(doc, rows, caption=None):
         row = table.rows[i]
         for j, cell_text in enumerate(row_data):
             if j < len(row.cells):
-                # Clean cell text (remove markdown links, bold, etc.)
-                clean_text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', cell_text)
-                clean_text = re.sub(r'\*\*([^*]+)\*\*', r'\1', clean_text)
-                clean_text = re.sub(r'`([^`]+)`', r'\1', clean_text)
-                row.cells[j].text = clean_text
+                cell = row.cells[j]
+                p = cell.paragraphs[0]
+                p.clear()
+
+                # Convert markdown links first
+                cell_text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', cell_text)
 
                 # Bold first row (header)
                 if i == 0:
-                    for para in row.cells[j].paragraphs:
-                        for run in para.runs:
-                            run.font.bold = True
-                            run.font.size = Pt(10)
+                    run = p.add_run(cell_text.replace('**', '').replace('*', '').replace('`', ''))
+                    run.font.bold = True
+                    run.font.size = Pt(10)
+                    run.font.name = 'Calibri'
                 else:
-                    for para in row.cells[j].paragraphs:
-                        for run in para.runs:
-                            run.font.size = Pt(10)
+                    # Use formatted text for content rows
+                    add_formatted_text(p, cell_text)
+                    # Adjust font size for table cells
+                    for run in p.runs:
+                        run.font.size = Pt(10)
 
     doc.add_paragraph()
 
@@ -771,29 +869,36 @@ def process_markdown(doc, md_content):
 
             continue
 
-        # Bold text and lists
+        # Bold text and lists - with proper formatting conversion
         if line.strip():
-            # Clean markdown formatting
             text = line.strip()
-            text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)
-            text = re.sub(r'`([^`]+)`', r'\1', text)
+
+            # Convert markdown links first (keep link text)
             text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
 
             # Handle bullet points
             if text.startswith('- ') or text.startswith('* '):
-                p = doc.add_paragraph(text[2:], style='List Bullet')
+                p = doc.add_paragraph(style='List Bullet')
+                add_formatted_text(p, text[2:])
             elif re.match(r'^\d+\.\s', text):
                 # Numbered list
                 num_text = re.sub(r'^\d+\.\s*', '', text)
-                p = doc.add_paragraph(num_text, style='List Number')
+                p = doc.add_paragraph(style='List Number')
+                add_formatted_text(p, num_text)
             elif text.startswith('> '):
                 # Quote/Note
                 p = doc.add_paragraph()
-                run = p.add_run(text[2:])
-                run.font.italic = True
-                run.font.color.rgb = RGBColor(100, 100, 100)
+                # Remove > and process formatting
+                quote_text = text[2:]
+                add_formatted_text(p, quote_text)
+                # Make the whole quote italic and gray
+                for run in p.runs:
+                    run.font.italic = True
+                    run.font.color.rgb = RGBColor(100, 100, 100)
             else:
-                p = doc.add_paragraph(text)
+                # Regular paragraph with formatting
+                p = doc.add_paragraph()
+                add_formatted_text(p, text)
 
         i += 1
 
