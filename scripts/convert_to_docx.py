@@ -1250,11 +1250,7 @@ def main():
     print("Adding cover page...")
     add_cover_page(doc)
 
-    # Add version history
-    print("Adding version history...")
-    add_version_history(doc)
-
-    # Add table of contents
+    # Add table of contents (Daftar Isi, Daftar Gambar, Daftar Tabel)
     print("Adding table of contents...")
     add_table_of_contents(doc)
 
@@ -1265,6 +1261,10 @@ def main():
     # Add glossary
     print("Adding glossary...")
     add_glossary(doc)
+
+    # Add version history (at the end, before document info)
+    print("Adding version history...")
+    add_version_history(doc)
 
     # Add footer info
     print("Adding document info...")
