@@ -219,20 +219,29 @@ def add_cover_page(doc):
     doc.add_page_break()
 
 def add_toc_field(doc):
-    """Add automatic Table of Contents field like Word."""
+    """Add automatic Table of Contents field like Word with dots and hyperlinks."""
     paragraph = doc.add_paragraph()
     run = paragraph.add_run()
 
-    # Create TOC field
+    # Create TOC field with proper switches:
+    # \o "1-3" = include heading levels 1-3
+    # \h = hyperlinks
+    # \z = hide page numbers in web view
+    # \u = use paragraph outline level
+    # \p = separator between entry and page number (dots)
     fldChar1 = create_element('w:fldChar')
     create_attribute(fldChar1, 'w:fldCharType', 'begin')
 
     instrText = create_element('w:instrText')
     create_attribute(instrText, 'xml:space', 'preserve')
-    instrText.text = 'TOC \\o "1-3" \\h \\z \\u'  # TOC with heading levels 1-3
+    instrText.text = ' TOC \\o "1-3" \\h \\z \\u '
 
     fldChar2 = create_element('w:fldChar')
     create_attribute(fldChar2, 'w:fldCharType', 'separate')
+
+    # Add placeholder text that will be replaced when field is updated
+    placeholder = create_element('w:t')
+    placeholder.text = 'Right-click and select "Update Field" to generate table of contents'
 
     fldChar3 = create_element('w:fldChar')
     create_attribute(fldChar3, 'w:fldCharType', 'end')
@@ -240,138 +249,160 @@ def add_toc_field(doc):
     run._r.append(fldChar1)
     run._r.append(instrText)
     run._r.append(fldChar2)
+    run._r.append(placeholder)
     run._r.append(fldChar3)
+
+def setup_toc_styles(doc):
+    """Setup TOC styles with tab stops for dots leader."""
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+
+    # Get or create TOC 1 style
+    styles = doc.styles
+
+    for toc_level in range(1, 4):
+        style_name = f'TOC {toc_level}'
+        try:
+            toc_style = styles[style_name]
+        except KeyError:
+            # Style doesn't exist, skip
+            continue
+
+        # Set font
+        toc_style.font.name = 'Calibri'
+        toc_style.font.size = Pt(11) if toc_level == 1 else Pt(10)
+
+        # Set paragraph format
+        pf = toc_style.paragraph_format
+        if toc_level == 1:
+            pf.left_indent = Cm(0)
+            toc_style.font.bold = True
+        elif toc_level == 2:
+            pf.left_indent = Cm(0.5)
+        else:
+            pf.left_indent = Cm(1.0)
+
+        pf.space_before = Pt(3)
+        pf.space_after = Pt(3)
 
 def add_table_of_contents(doc):
     """Add table of contents page with proper Word-style formatting."""
+    # Setup TOC styles
+    setup_toc_styles(doc)
+
     # TOC Title
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run("DAFTAR ISI")
-    run.font.size = Pt(16)
+    run.font.size = Pt(18)
     run.font.bold = True
     run.font.name = "Calibri"
     run.font.color.rgb = RGBColor(0, 102, 153)
 
     doc.add_paragraph()
+    doc.add_paragraph()
 
-    # Add automatic TOC field (will update when opened in Word)
+    # Add automatic TOC field (will show dots and hyperlinks when updated in Word)
     add_toc_field(doc)
 
-    # Add manual TOC as fallback (visible before field update)
     doc.add_paragraph()
+    doc.add_paragraph()
+
+    # Instructions for user
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run("Untuk menampilkan Daftar Isi dengan hyperlink dan nomor halaman:")
+    run.font.size = Pt(10)
+    run.font.italic = True
+    run.font.color.rgb = RGBColor(100, 100, 100)
+    run.font.name = "Calibri"
 
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run("(Klik kanan pada daftar isi di atas dan pilih 'Update Field' untuk memperbarui halaman)")
-    run.font.size = Pt(9)
-    run.font.italic = True
-    run.font.color.rgb = RGBColor(128, 128, 128)
+    run = p.add_run("Klik kanan pada teks di atas → pilih 'Update Field' → pilih 'Update entire table'")
+    run.font.size = Pt(10)
+    run.font.bold = True
+    run.font.color.rgb = RGBColor(0, 102, 153)
+    run.font.name = "Calibri"
 
-    doc.add_paragraph()
-    doc.add_paragraph()
-
-    # Manual TOC entries with proper indentation
-    toc_entries = [
-        (1, "1. Tentang Aplikasi"),
-        (1, "2. Persiapan Sebelum Memulai"),
-        (1, "3. Menghubungkan ke Gateway"),
-        (2, "3.1 Scan Perangkat"),
-        (2, "3.2 Koneksi Bluetooth"),
-        (1, "4. Dashboard Utama"),
-        (1, "5. Konfigurasi Device (Sensor)"),
-        (2, "5.1 Tambah Device Baru"),
-        (2, "5.2 Modbus RTU"),
-        (2, "5.3 Modbus TCP"),
-        (1, "6. Konfigurasi Modbus"),
-        (2, "6.1 Setup Register"),
-        (2, "6.2 Tipe Data"),
-        (1, "7. Konfigurasi Server"),
-        (2, "7.1 Network (WiFi/Ethernet)"),
-        (2, "7.2 MQTT Settings"),
-        (2, "7.3 Logging"),
-        (1, "8. Status & Monitoring"),
-        (2, "8.1 Firmware Update"),
-        (2, "8.2 Backup & Restore"),
-        (1, "9. Streaming Data"),
-        (1, "10. Pengaturan Aplikasi"),
-        (1, "11. Troubleshooting"),
-        (1, "12. Referensi"),
-    ]
-
-    for level, text in toc_entries:
-        p = doc.add_paragraph()
-
-        # Add indentation based on level
-        if level == 1:
-            indent = 0
-            font_size = Pt(11)
-            is_bold = True
-        elif level == 2:
-            indent = Cm(0.75)
-            font_size = Pt(10)
-            is_bold = False
-        else:
-            indent = Cm(1.5)
-            font_size = Pt(10)
-            is_bold = False
-
-        p.paragraph_format.left_indent = indent
-
-        run = p.add_run(text)
-        run.font.size = font_size
-        run.font.bold = is_bold
-        run.font.name = "Calibri"
-
-    doc.add_paragraph()
     doc.add_page_break()
 
-    # Daftar Gambar
+    # === DAFTAR GAMBAR ===
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run("DAFTAR GAMBAR")
-    run.font.size = Pt(14)
+    run.font.size = Pt(18)
     run.font.bold = True
     run.font.name = "Calibri"
     run.font.color.rgb = RGBColor(0, 102, 153)
 
     doc.add_paragraph()
 
+    # Add List of Figures field
     p = doc.add_paragraph()
-    run = p.add_run("Gambar dinomori dengan format: Gambar [Bab].[Urutan]")
-    run.font.size = Pt(10)
-    run.font.italic = True
-    run.font.name = "Calibri"
+    run = p.add_run()
 
-    p = doc.add_paragraph()
-    run = p.add_run("Contoh: Gambar 3.1, Gambar 5.2, Gambar 7.1")
-    run.font.size = Pt(10)
-    run.font.name = "Calibri"
+    fldChar1 = create_element('w:fldChar')
+    create_attribute(fldChar1, 'w:fldCharType', 'begin')
+
+    instrText = create_element('w:instrText')
+    create_attribute(instrText, 'xml:space', 'preserve')
+    instrText.text = ' TOC \\h \\z \\c "Gambar" '  # List of figures with caption label "Gambar"
+
+    fldChar2 = create_element('w:fldChar')
+    create_attribute(fldChar2, 'w:fldCharType', 'separate')
+
+    placeholder = create_element('w:t')
+    placeholder.text = 'Update Field untuk menampilkan daftar gambar'
+
+    fldChar3 = create_element('w:fldChar')
+    create_attribute(fldChar3, 'w:fldCharType', 'end')
+
+    run._r.append(fldChar1)
+    run._r.append(instrText)
+    run._r.append(fldChar2)
+    run._r.append(placeholder)
+    run._r.append(fldChar3)
 
     doc.add_paragraph()
     doc.add_page_break()
 
-    # Daftar Tabel
+    # === DAFTAR TABEL ===
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     run = p.add_run("DAFTAR TABEL")
-    run.font.size = Pt(14)
+    run.font.size = Pt(18)
     run.font.bold = True
     run.font.name = "Calibri"
     run.font.color.rgb = RGBColor(0, 102, 153)
 
     doc.add_paragraph()
 
+    # Add List of Tables field
     p = doc.add_paragraph()
-    run = p.add_run("Tabel dinomori dengan format: Tabel [Bab].[Urutan]")
-    run.font.size = Pt(10)
-    run.font.italic = True
-    run.font.name = "Calibri"
+    run = p.add_run()
 
-    p = doc.add_paragraph()
-    run = p.add_run("Contoh: Tabel 1.1, Tabel 5.1, Tabel 7.1")
-    run.font.size = Pt(10)
-    run.font.name = "Calibri"
+    fldChar1 = create_element('w:fldChar')
+    create_attribute(fldChar1, 'w:fldCharType', 'begin')
+
+    instrText = create_element('w:instrText')
+    create_attribute(instrText, 'xml:space', 'preserve')
+    instrText.text = ' TOC \\h \\z \\c "Tabel" '  # List of tables with caption label "Tabel"
+
+    fldChar2 = create_element('w:fldChar')
+    create_attribute(fldChar2, 'w:fldCharType', 'separate')
+
+    placeholder = create_element('w:t')
+    placeholder.text = 'Update Field untuk menampilkan daftar tabel'
+
+    fldChar3 = create_element('w:fldChar')
+    create_attribute(fldChar3, 'w:fldCharType', 'end')
+
+    run._r.append(fldChar1)
+    run._r.append(instrText)
+    run._r.append(fldChar2)
+    run._r.append(placeholder)
+    run._r.append(fldChar3)
 
     doc.add_paragraph()
     doc.add_page_break()
