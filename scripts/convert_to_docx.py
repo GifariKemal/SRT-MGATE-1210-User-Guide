@@ -285,7 +285,7 @@ def find_image(image_name):
     return None
 
 def add_image(doc, image_path, caption=None):
-    """Add image with caption."""
+    """Add single image with caption."""
     if not image_path or not Path(image_path).exists():
         print(f"Warning: Image not found: {image_path}")
         return
@@ -311,6 +311,60 @@ def add_image(doc, image_path, caption=None):
         run.font.color.rgb = RGBColor(100, 100, 100)
 
     # Add small spacing after image
+    doc.add_paragraph()
+
+def add_images_side_by_side(doc, images_data):
+    """Add multiple images side by side using a table (2 per row)."""
+    if not images_data:
+        return
+
+    # Calculate how many rows we need (2 images per row)
+    num_images = len(images_data)
+    num_rows = (num_images + 1) // 2  # Ceiling division
+
+    # Create table with 2 columns
+    table = doc.add_table(rows=num_rows * 2, cols=2)  # *2 for image + caption rows
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+
+    # Remove borders
+    for row in table.rows:
+        for cell in row.cells:
+            cell._element.get_or_add_tcPr().append(
+                OxmlElement('w:tcBorders')
+            )
+
+    img_idx = 0
+    for row_idx in range(num_rows):
+        img_row = table.rows[row_idx * 2]
+        caption_row = table.rows[row_idx * 2 + 1]
+
+        for col_idx in range(2):
+            if img_idx < num_images:
+                image_path, caption = images_data[img_idx]
+
+                if image_path and Path(image_path).exists():
+                    # Add image to cell
+                    cell = img_row.cells[col_idx]
+                    p = cell.paragraphs[0]
+                    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    run = p.add_run()
+                    try:
+                        run.add_picture(str(image_path), width=Inches(2.3))
+                    except Exception as e:
+                        print(f"Error adding image {image_path}: {e}")
+
+                    # Add caption to cell below
+                    cap_cell = caption_row.cells[col_idx]
+                    cap_p = cap_cell.paragraphs[0]
+                    cap_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    if caption:
+                        cap_run = cap_p.add_run(caption)
+                        cap_run.font.size = Pt(9)
+                        cap_run.font.italic = True
+                        cap_run.font.color.rgb = RGBColor(100, 100, 100)
+
+                img_idx += 1
+
     doc.add_paragraph()
 
 def parse_table(lines):
@@ -445,32 +499,53 @@ def process_markdown(doc, md_content):
             i += 1
             continue
 
-        # Images
+        # Images - collect consecutive images and display side by side
         img_match = re.search(r'!\[([^\]]*)\]\(([^)]+)\)', line)
         if img_match:
-            caption = img_match.group(1)
-            img_path = img_match.group(2)
+            # Collect all consecutive images
+            images_to_add = []
 
-            # Extract filename from path
-            if '../assets/screenshots/' in img_path:
-                img_name = img_path.replace('../assets/screenshots/', '')
-            elif 'assets/screenshots/' in img_path:
-                img_name = img_path.replace('assets/screenshots/', '')
-            else:
-                img_name = os.path.basename(img_path)
+            while i < len(lines):
+                current_line = lines[i]
+                current_match = re.search(r'!\[([^\]]*)\]\(([^)]+)\)', current_line)
 
-            # URL decode
-            import urllib.parse
-            img_name = urllib.parse.unquote(img_name)
+                if current_match:
+                    caption = current_match.group(1)
+                    img_path = current_match.group(2)
 
-            # Find and add image
-            image_file = find_image(img_name)
-            if image_file:
-                add_image(doc, image_file, caption if caption else None)
-            else:
-                print(f"Image not found: {img_name}")
+                    # Extract filename from path
+                    if '../assets/screenshots/' in img_path:
+                        img_name = img_path.replace('../assets/screenshots/', '')
+                    elif 'assets/screenshots/' in img_path:
+                        img_name = img_path.replace('assets/screenshots/', '')
+                    else:
+                        img_name = os.path.basename(img_path)
 
-            i += 1
+                    # URL decode
+                    import urllib.parse
+                    img_name = urllib.parse.unquote(img_name)
+
+                    # Find image file
+                    image_file = find_image(img_name)
+                    if image_file:
+                        images_to_add.append((image_file, caption if caption else None))
+                    else:
+                        print(f"Image not found: {img_name}")
+
+                    i += 1
+                elif current_line.strip() == '':
+                    # Skip empty lines between images
+                    i += 1
+                else:
+                    # Non-image line, stop collecting
+                    break
+
+            # Add images: if multiple, show side by side; if single, show alone
+            if len(images_to_add) > 1:
+                add_images_side_by_side(doc, images_to_add)
+            elif len(images_to_add) == 1:
+                add_image(doc, images_to_add[0][0], images_to_add[0][1])
+
             continue
 
         # Bold text and lists
